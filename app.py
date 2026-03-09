@@ -303,7 +303,7 @@ Messages : {count}
                 "body":{
                   "type":"box",
                   "layout":"vertical",
-                  "contents"🙁
+                  "contents"
                     {"type":"text","text":"📊 โพลใหม่","weight":"bold"}
                   ]
                 },
