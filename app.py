@@ -305,7 +305,7 @@ Messages : {count}
                   "layout":"vertical",
                   "contents"
                     {"type":"text","text":"📊 โพลใหม่","weight":"bold"}
-                  ]
+              }
                 },
                 "footer":{
                   "type":"box",
