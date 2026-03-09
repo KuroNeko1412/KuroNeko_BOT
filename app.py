@@ -7,7 +7,7 @@ from linebot.v3.exceptions import InvalidSignatureError
 import os
 import random
 
-app = Flask(__name__)
+app = Flask(name)
 
 @app.route("/")
 def home():
@@ -21,15 +21,18 @@ handler = WebhookHandler(CHANNEL_SECRET)
 
 @app.route("/callback", methods=['POST'])
 def callback():
-    signature = request.headers.get('X-Line-Signature')
+    signature = request.headers.get('X-Line-Signature', '')
     body = request.get_data(as_text=True)
 
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
-        abort(400)
+        return "Invalid signature", 400
+    except Exception as e:
+        print(e)
+        return "Error", 200
 
-    return "OK"
+    return "OK", 200
 
 responses = [
     "ผมอยู่เป็นเพื่อนคุณได้นะ 😸",
@@ -46,15 +49,32 @@ def handle_message(event):
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
 
-        reply = random.choice(responses)
+        if user_message in ["สวัสดี", "hello", "hi"]:
+            reply_text = "สวัสดีครับ 😸 ผมคือ KuroNeko BOT"
+
+        elif user_message in ["เหงา", "เบื่อ"]:
+            reply_text = "ถ้าเหงาก็มาคุยกับผมได้ ผมอยู่ตรงนี้นะ 😺"
+
+        elif user_message in ["ทำอะไรอยู่"]:
+            reply_text = "กำลังรอคุยกับคุณอยู่นะ"
+
+        elif user_message in ["ฝันดี"]:
+            reply_text = "ฝันดีนะครับ ขอให้หลับสบาย 😴"
+
+        elif user_message in ["ขอบคุณ"]:
+            reply_text = "ยินดีเสมอเลย 😸"
+
+        else:
+            reply_text = random.choice(responses)
 
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 replyToken=event.reply_token,
-                messages=[TextMessage(text=reply)]
+                messages=[TextMessage(text=reply_text)]
             )
         )
 
-if __name__ == "__main__":
+
+if name == "main":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
