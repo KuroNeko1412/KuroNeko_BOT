@@ -3,11 +3,22 @@ import random
 import time
 
 from linebot.v3 import WebhookHandler
-from linebot.v3.messaging import *
-from linebot.v3.webhooks import *
+from linebot.v3.messaging import (
+    Configuration,
+    ApiClient,
+    MessagingApi,
+    ReplyMessageRequest,
+    TextMessage,
+    FlexMessage
+)
+from linebot.v3.webhooks import MessageEvent, TextMessageContent
 
-CHANNEL_ACCESS_TOKEN = "YOUR_CHANNEL_ACCESS_TOKEN"
-CHANNEL_SECRET = "YOUR_CHANNEL_SECRET"
+# =========================
+# LINE CONFIG
+# =========================
+
+CHANNEL_ACCESS_TOKEN = "PUT_YOUR_CHANNEL_ACCESS_TOKEN"
+CHANNEL_SECRET = "PUT_YOUR_CHANNEL_SECRET"
 
 configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
@@ -49,7 +60,7 @@ ai_responses = [
 ]
 
 # =========================
-# HELPER FUNCTIONS
+# HELPER
 # =========================
 
 def is_admin(uid):
@@ -59,21 +70,30 @@ def get_level(exp):
     return int(exp ** 0.5)
 
 # =========================
+# HOME PAGE (สำคัญสำหรับ Render)
+# =========================
+
+@app.route("/")
+def home():
+    return "LINE BOT RUNNING"
+
+# =========================
 # WEBHOOK
 # =========================
 
 @app.route("/callback", methods=['POST'])
 def callback():
 
-    signature = request.headers['X-Line-Signature']
+    signature = request.headers.get('X-Line-Signature')
     body = request.get_data(as_text=True)
 
     try:
         handler.handle(body, signature)
-    except:
-        abort(400)
+    except Exception as e:
+        print("Webhook error:", e)
+        return "OK"
 
-    return 'OK'
+    return "OK"
 
 # =========================
 # MESSAGE EVENT
@@ -94,7 +114,6 @@ def handle_message(event):
         profile = line_bot_api.get_profile(user_id)
         name = profile.display_name
 
-        # BOT OFF CHECK
         if not bot_enabled and not is_admin(user_id):
             return
 
@@ -137,7 +156,6 @@ def handle_message(event):
         # COMMANDS
         # =================
 
-        # REGISTER OWNER
         if text == "/register":
 
             if len(owners) == 0:
@@ -146,101 +164,6 @@ def handle_message(event):
             else:
                 reply = "Owner ถูกตั้งแล้ว"
 
-        # ADD ADMIN
-        elif text.startswith("/addadmin"):
-
-            if not is_admin(user_id):
-                reply = "❌ เฉพาะแอดมิน"
-
-            else:
-
-                mention = event.message.mention
-
-                if mention:
-
-                    target = mention.mentionees[0].user_id
-
-                    if target not in admins:
-
-                        admins.append(target)
-
-                        profile = line_bot_api.get_profile(target)
-
-                        reply = f"✅ เพิ่ม {profile.display_name} เป็นแอดมิน"
-
-                    else:
-
-                        reply = "เป็นแอดมินอยู่แล้ว"
-
-                else:
-
-                    reply = "กรุณา @mention คน"
-
-        # REMOVE ADMIN
-        elif text.startswith("/removeadmin"):
-
-            if not is_admin(user_id):
-
-                reply = "❌ เฉพาะแอดมิน"
-
-            else:
-
-                mention = event.message.mention
-
-                if mention:
-
-                    target = mention.mentionees[0].user_id
-
-                    if target in admins:
-
-                        admins.remove(target)
-
-                        profile = line_bot_api.get_profile(target)
-
-                        reply = f"🗑 ลบ {profile.display_name}"
-
-                    else:
-
-                        reply = "ไม่ใช่แอดมิน"
-
-        # BOT OFF
-        elif text == "/bot off":
-
-            if not is_admin(user_id):
-
-                reply = "❌ เฉพาะแอดมิน"
-
-            else:
-
-                bot_enabled = False
-                reply = f"🔴 {name} ปิดบอทแล้ว"
-
-        # BOT ON
-        elif text == "/bot on":
-
-            if not is_admin(user_id):
-
-                reply = "❌ เฉพาะแอดมิน"
-
-            else:
-
-                bot_enabled = True
-                reply = f"🟢 {name} เปิดบอทแล้ว"
-
-        # ANNOUNCE
-        elif text.startswith("/announce"):
-
-            if not is_admin(user_id):
-
-                reply = "❌ เฉพาะแอดมิน"
-
-            else:
-
-                msg = text.replace("/announce ","")
-
-                reply = f"📢 ประกาศจาก {name}\n\n{msg}"
-
-        # LEVEL
         elif text == "/level":
 
             exp = user_exp.get(user_id,0)
@@ -255,7 +178,6 @@ EXP : {exp}
 Messages : {count}
 """
 
-        # LEADERBOARD
         elif text == "/top":
 
             ranking = sorted(
@@ -274,7 +196,10 @@ Messages : {count}
 
             reply = msg
 
-        # CREATE POLL
+        # =================
+        # POLL
+        # =================
+
         elif text.startswith("/poll"):
 
             options = text.replace("/poll ","").split(",")
@@ -295,36 +220,35 @@ Messages : {count}
                     }
                 })
 
-            flex = {
-  "type":"flex",
-  "altText":"Poll",
-  "contents": {
-    "type":"bubble",
-    "body":{
-      "type":"box",
-      "layout":"vertical",
-      "contents":[
-        {"type":"text","text":"📊 โพลใหม่","weight":"bold"}
-      ]
-    },
-    "footer":{
-      "type":"box",
-      "layout":"vertical",
-      "contents":buttons
-    }
-  }
-}
-            
+            flex_content = {
+              "type":"bubble",
+              "body":{
+                "type":"box",
+                "layout":"vertical",
+                "contents":[
+                    {"type":"text","text":"📊 โพลใหม่","weight":"bold"}
+                ]
+              },
+              "footer":{
+                "type":"box",
+                "layout":"vertical",
+                "contents":buttons
+              }
+            }
 
             line_bot_api.reply_message(
                 ReplyMessageRequest(
                     replyToken=event.reply_token,
-                    messages=[flex]
+                    messages=[
+                        FlexMessage(
+                            alt_text="Poll",
+                            contents=flex_content
+                        )
+                    ]
                 )
             )
             return
 
-        # VOTE
         elif text.startswith("/vote"):
 
             vote = int(text.split(" ")[1])
@@ -339,7 +263,6 @@ Messages : {count}
 
                 reply = f"{name} โหวต {poll_data[vote-1]}"
 
-        # RESULT
         elif text == "/result":
 
             result = {}
@@ -363,32 +286,22 @@ Messages : {count}
 
             reply = msg
 
-        # HELP
         elif text == "/help":
 
             reply = """
 🤖 คำสั่งบอท
 
 /register
-/addadmin @คน
-/removeadmin @คน
-
-/bot on
-/bot off
-
-/announce
-
 /level
 /top
 
-/poll
+/poll A,B,C
 /vote
 /result
 
 /help
 """
 
-        # AI CHAT
         else:
 
             reply = f"{name} {random.choice(ai_responses)}"
@@ -401,42 +314,8 @@ Messages : {count}
         )
 
 # =========================
-# MEMBER JOIN
+# RUN
 # =========================
-
-@handler.add(MemberJoinedEvent)
-def welcome(event):
-
-    with ApiClient(configuration) as api_client:
-
-        line_bot_api = MessagingApi(api_client)
-
-        user_id = event.joined.members[0].user_id
-
-        profile = line_bot_api.get_profile(user_id)
-
-        name = profile.display_name
-
-        line_bot_api.push_message(
-            event.source.group_id,
-            [TextMessage(text=f"👋 ยินดีต้อนรับ {name}")]
-        )
-
-# =========================
-# MEMBER LEFT
-# =========================
-
-@handler.add(MemberLeftEvent)
-def goodbye(event):
-
-    with ApiClient(configuration) as api_client:
-
-        line_bot_api = MessagingApi(api_client)
-
-        line_bot_api.push_message(
-            event.source.group_id,
-            [TextMessage(text="😢 มีสมาชิกออกจากกลุ่ม")]
-        )
 
 if __name__ == "__main__":
-    app.run(port=3000)
+    app.run(host="0.0.0.0", port=3000)
