@@ -313,7 +313,7 @@ Messages : {count}
                   "contents":buttons
                 }
               }
-            }
+            
 
             line_bot_api.reply_message(
                 ReplyMessageRequest(
