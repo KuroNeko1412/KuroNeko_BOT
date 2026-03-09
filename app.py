@@ -7,17 +7,7 @@ from linebot.v3.exceptions import InvalidSignatureError
 import os
 import random
 
-app = Flask(name)
-
-@app.route("/")
-def home():
-    return "KuroNeko BOT is running! 😸"
-
-CHANNEL_ACCESS_TOKEN = os.getenv("CHANNEL_ACCESS_TOKEN")
-CHANNEL_SECRET = os.getenv("CHANNEL_SECRET")
-
-configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(CHANNEL_SECRET)
+app = Flask(__name__)
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -65,7 +55,12 @@ def handle_message(event):
             reply_text = "ยินดีเสมอเลย 😸"
 
         else:
-            reply_text = random.choice(responses)
+            reply_text = random.choice([
+                "ผมอยู่เป็นเพื่อนคุณได้นะ 😸",
+                "วันนี้เป็นยังไงบ้าง",
+                "อย่าลืมพักผ่อนด้วยนะ",
+                "ถ้าเหงาก็มาคุยกับผมได้เสมอ"
+            ])
 
         line_bot_api.reply_message(
             ReplyMessageRequest(
@@ -74,7 +69,6 @@ def handle_message(event):
             )
         )
 
-
-if name == "main":
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
