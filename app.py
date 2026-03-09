@@ -1,4 +1,4 @@
-from flask import Flask, request, abort
+from flask import Flask, request
 import random
 import time
 
@@ -70,12 +70,17 @@ def get_level(exp):
     return int(exp ** 0.5)
 
 # =========================
-# HOME PAGE (สำคัญสำหรับ Render)
+# STATUS PAGE
 # =========================
 
 @app.route("/")
 def home():
-    return "LINE BOT RUNNING"
+    return """
+    <h1>🟢 KuroNeko SuperBot</h1>
+    <h2>ทำงานแล้วจ้า</h2>
+    <p>Server : Render Cloud</p>
+    <p>Status : ONLINE</p>
+    """
 
 # =========================
 # WEBHOOK
@@ -197,7 +202,7 @@ Messages : {count}
             reply = msg
 
         # =================
-        # POLL
+        # POLL SYSTEM
         # =================
 
         elif text.startswith("/poll"):
@@ -286,10 +291,14 @@ Messages : {count}
 
             reply = msg
 
+        # =================
+        # HELP
+        # =================
+
         elif text == "/help":
 
             reply = """
-🤖 คำสั่งบอท
+🤖 KuroNeko SuperBot
 
 /register
 /level
@@ -314,7 +323,7 @@ Messages : {count}
         )
 
 # =========================
-# RUN
+# RUN SERVER
 # =========================
 
 if __name__ == "__main__":
