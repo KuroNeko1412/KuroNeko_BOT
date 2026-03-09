@@ -298,7 +298,7 @@ Messages : {count}
             flex = {
               "type":"flex",
               "altText":"Poll",
-              "contents":{
+              "contents"{
                 "type":"bubble",
                 "body":{
                   "type":"box",
