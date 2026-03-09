@@ -7,7 +7,7 @@ from linebot.v3.exceptions import InvalidSignatureError
 import os
 import random
 
-app = Flask(_name_)
+app = Flask(__name__)
 
 # หน้าเว็บหลัก
 @app.route("/")
@@ -99,6 +99,6 @@ def handle_message(event):
         )
 
 # รันเซิร์ฟเวอร์
-if _name_ == "_main_":
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
