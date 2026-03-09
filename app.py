@@ -296,23 +296,24 @@ Messages : {count}
                 })
 
             flex = {
-              "type":"flex",
-              "altText":"Poll",
-              "contents": {
-                "type":"bubble",
-                "body":{
-                  "type":"box",
-                  "layout":"vertical",
-                  "contents"
-                    {"type":"text","text":"📊 โพลใหม่","weight":"bold"}
-              }
-                },
-                "footer":{
-                  "type":"box",
-                  "layout":"vertical",
-                  "contents":buttons
-                }
-              }
+  "type":"flex",
+  "altText":"Poll",
+  "contents": {
+    "type":"bubble",
+    "body":{
+      "type":"box",
+      "layout":"vertical",
+      "contents":[
+        {"type":"text","text":"📊 โพลใหม่","weight":"bold"}
+      ]
+    },
+    "footer":{
+      "type":"box",
+      "layout":"vertical",
+      "contents":buttons
+    }
+  }
+}
             
 
             line_bot_api.reply_message(
